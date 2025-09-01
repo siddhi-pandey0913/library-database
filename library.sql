@@ -72,3 +72,44 @@ FROM Users u
 JOIN Transactions t ON u.id = t.user_id
 GROUP BY u.id, u.name
 ORDER BY total_transactions DESC;
+
+-- update return_date when a book is returned
+UPDATE Transactions
+SET return_date = CURDATE(), 
+    status = 'RETURNED'
+WHERE user_id = 1             
+  AND book_id = 3             
+  AND status = 'ISSUED';       
+
+-- books not returned yet
+SELECT t.id AS transaction_id,
+       t.user_id,
+       t.book_id,
+       b.title,
+       b.author,
+       t.issue_date
+FROM Transactions t
+JOIN Books b ON t.book_id = b.id
+WHERE t.return_date IS NULL   
+  AND t.status = 'ISSUED';
+
+-- most issued book
+SELECT b.id AS book_id,
+       b.title,
+       b.author,
+       COUNT(*) AS total_issues
+FROM Transactions t
+JOIN Books b ON t.book_id = b.id
+GROUP BY b.id, b.title, b.author
+ORDER BY total_issues DESC
+LIMIT 1;
+
+-- users who issued more than 3 books 
+SELECT u.id AS user_id,
+       u.name,
+       COUNT(*) AS total_books_issued
+FROM Transactions t
+JOIN Users u ON t.user_id = u.id
+GROUP BY u.id, u.name
+HAVING COUNT(*) > 3
+ORDER BY total_books_issued DESC;
